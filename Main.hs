@@ -1,11 +1,8 @@
 module Main where
 
-import qualified Parser
+import Parser (parse)
 import qualified Solver
+import Types
 
-main = do
-    rawRiddle <- readFile "./data/dumb.txt"
-    riddle <- Parser.parse rawRiddle
-    solution <- Solver.solve riddle
-    putStrLn solution
+main = interact $ parse 
     
