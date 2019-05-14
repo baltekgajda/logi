@@ -2,6 +2,7 @@ module Main where
 
 import qualified Parser
 import qualified Solver
+import qualified Color
 
 main = do
     rawRiddle <- readFile "./data/dumb.txt"
