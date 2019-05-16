@@ -4,5 +4,8 @@ import Parser (parse)
 import qualified Solver
 import Types
 
-main = interact $ parse 
+main = do
+    file <- getContents
+    let board = parse file
+    print $ show board
     
