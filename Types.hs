@@ -3,7 +3,7 @@ module Types where
 import Data.List.Split
 
 --Blank means that space is not filled, NoColor means that in that space there will remain empty
-data Color = Blank | NoColor | Black | Red deriving (Eq, Show)
+data Color = Blank | NoColor | Black | Red | Green | Yellow | Blue | Magenta | Cyan | White deriving (Eq, Show)
 
 --BorderSlice contains either one row or one column of the board
 type BoardSlice = [Color]

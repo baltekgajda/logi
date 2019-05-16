@@ -2,11 +2,12 @@ module Main where
 
 import Parser (parse)
 import qualified Solver
-import qualified Color
+import Color
 import Types
 
 main = do
     file <- getContents
     let board = parse file
     print $ show board
+    Color.printBoard board
     

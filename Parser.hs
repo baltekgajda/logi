@@ -34,6 +34,12 @@ parseHint :: String -> Hint
 parseHint xs = (howMany, color $ last xs, False)
     where howMany = read $ init xs :: Int
           color x | x == 'B'  = Black
-                  | x == 'R'  = Red   
+                  | x == 'R'  = Red  
+                  | x == 'G'  = Green
+                  | x == 'Y'  = Yellow
+                  | x == 'M'  = Magenta
+                  | x == 'C'  = Cyan
+                  | x == 'W'  = White
+                  | x == 'N'  = Blue 
                   | otherwise = error $ "Wrong color code: " ++ show x 
 
