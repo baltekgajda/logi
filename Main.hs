@@ -1,11 +1,13 @@
 module Main where
 
-import qualified Parser
+import Parser (parse)
 import qualified Solver
+import Color
+import Types
 
 main = do
-    rawRiddle <- readFile "./data/dumb.txt"
-    riddle <- Parser.parse rawRiddle
-    solution <- Solver.solve riddle
-    putStrLn solution
-    
+    file <- getContents
+    let board = parse file
+    let solution = Solver.solve board
+    print $ show solution
+    Color.printBoard solution
