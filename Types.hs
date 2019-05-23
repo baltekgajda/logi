@@ -36,7 +36,7 @@ data Board = Board {
         hHints :: Hints
         } deriving (Show)
 
---createNewBoard generates empty board with a given size
+--createNewBoard generates empty board with a given size, also vertical and horizontal hints
 createNewBoard :: Int -> Int -> Hints -> Hints -> Board
 createNewBoard rNo cNo v h = Board matrix v h
         where matrix | rNo>0 && cNo>0 = Matrix rNo cNo (replicate (rNo*cNo) Blank)
