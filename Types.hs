@@ -18,6 +18,9 @@ type Hints = [HintSlice]
 --BorderSlice contains either one row or one column of the board with corresponding hints
 type BoardSlice = ([Color], HintSlice)
 
+--like BoardSlice but contains additional info if field on the board (or several) fulfilled a hint
+type AdvBoardSlice = ([(Color, Bool)], HintSlice)
+
 --Matrix is two dimensional array with the size specified with rowsNo & columnsNo
 data Matrix = Matrix {
         rowsNo    :: Int,
