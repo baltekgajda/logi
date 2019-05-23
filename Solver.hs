@@ -65,6 +65,8 @@ flagFilledFields slice = (slice,False)
 --TODO Celem tej funkcji jest sprawdzenie czy jakiś hint został spełniony i oznaczenie odpowiednich pól jako (_,True)
 --TODO oraz odpowiednich hintów. Jeśli rzeczywiście jakiś hint został zrobiony i oznaczone zostało to zwracany
 --TODO jest nowy AdvBoardSlice i True, jeśli nie znalezniono żadnych spełnionych hintów to zwracany jest wejściowy i False
+--TODO dodatkowo jesli wiadomo ze jest np. 1 2 tego samego koloru i dwa jest na planszy to dodać pola x przed ....x22x otaczające
+--TODO zrobiony hint, NIE dotyczy jeśli obok jest inny kolor bo mogą być obok siebie
 
 --for each boardSlice all done fields are marked using boolean values in new advBoardSlice
 toAdvBoardSlices :: [BoardSlice] -> [AdvBoardSlice]
