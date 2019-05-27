@@ -70,14 +70,29 @@ flagFilledFields slice = (slice,False)
 
 --for each boardSlice all done fields are marked using boolean values in new advBoardSlice
 toAdvBoardSlices :: [BoardSlice] -> [AdvBoardSlice]
-toAdvBoardSlices boardSlices = [(getAdvColorArray color, hints) | (color, hints) <- boardSlices]
+toAdvBoardSlices boardSlices = map createAdvBoardSlice boardSlices
         where
-                getAdvColorArray :: [Color] -> [(Color, Bool)]
-                getAdvColorArray array = [(c,False) | c <- array]
-                --TODO tu zmienic na policzenie naprawdę czy pole jest Done czy nie,
-                --TODO zrobić to na podstawie hintów, ponieważ oznaczone są te, które zostały zrobione
-                --TODO także wyłącznie na podstawie tego należy znaleźć pola odpowiadające tym spełnionym hintom
-                --TODO i ustalić drugą wartość krotki na true, w każdym innym przypadku ma to być false
+                createAdvBoardSlice :: BoardSlice -> AdvBoardSlice                
+                createAdvBoardSlice (colors, hints) = 
+                        (transformSlice fulfilledHints advColors [], hints)
+                        where   advColors = map (\color -> (color, False)) colors
+                                fulfilledHints = filter (\(_, _, isFullfiled) -> isFullfiled) hints
+                transformSlice :: HintSlice -> [(Color, Bool)] -> [(Color, Bool)] -> [(Color, Bool)]
+                transformSlice [] unprocesseds processeds = processeds ++ unprocesseds
+                transformSlice _ [] processeds = processeds
+                transformSlice (h:hs) (unprocessedElem : unprocesseds) processeds =
+                        if isProperFields h (unprocessedElem : unprocesseds)
+                                then transformSlice hs unps (processeds ++ ps)        
+                                else transformSlice (h:hs) unprocesseds (processeds ++ [unprocessedElem])
+                        where   
+                                (num, _, _) = h
+                                ps = map (\(color, _) -> (color, True)) (take num (unprocessedElem : unprocesseds))
+                                unps = drop (num - 1) unprocesseds
+                                isProperFields :: Hint -> [(Color, Bool)] -> Bool
+                                isProperFields (num, color, _) unprocesseds =
+                                        if num > (length unprocesseds)
+                                                then False
+                                                else (length $ filter (\(fieldColor, _) -> fieldColor == color) $ take num unprocesseds) == num
 
 --toBoardSlices transforms advBoardSlices into BoardSlices
 toBoardSlices :: [AdvBoardSlice] -> [BoardSlice]
