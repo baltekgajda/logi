@@ -6,7 +6,7 @@ parse :: [Char] -> Board
 parse xs = parseMainComponents xs
 
 parseMainComponents :: [Char] -> Board
-parseMainComponents xs = createNewBoard numOfRows numOfCols colHints rowHints   --TODO czy na pewno hints w tej kolejnosci??
+parseMainComponents xs = createNewBoard numOfRows numOfCols rowHints colHints
     where colHints = parseRows $ rawComponents !! 2
           rowHints = parseRows $ rawComponents !! 1
           (numOfRows, numOfCols) = parseDimensions $ rawComponents !! 0

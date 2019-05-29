@@ -18,6 +18,9 @@ type Hints = [HintSlice]
 --BorderSlice contains either one row or one column of the board with corresponding hints
 type BoardSlice = ([Color], HintSlice)
 
+--like BoardSlice but contains additional info if field on the board (or several) fulfilled a hint
+type AdvBoardSlice = ([(Color, Bool)], HintSlice)
+
 --Matrix is two dimensional array with the size specified with rowsNo & columnsNo
 data Matrix = Matrix {
         rowsNo    :: Int,
@@ -33,7 +36,7 @@ data Board = Board {
         hHints :: Hints
         } deriving (Show)
 
---createNewBoard generates empty board with a given size
+--createNewBoard generates empty board with a given size, also vertical and horizontal hints
 createNewBoard :: Int -> Int -> Hints -> Hints -> Board
 createNewBoard rNo cNo v h = Board matrix v h
         where matrix | rNo>0 && cNo>0 = Matrix rNo cNo (replicate (rNo*cNo) Blank)
