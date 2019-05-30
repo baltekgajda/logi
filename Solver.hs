@@ -1,5 +1,7 @@
 module Solver where
+
 import Types
+import Methods
 
 import Data.List.Split
 
@@ -34,7 +36,7 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [f1,f2,f3]    --TODO zmienic nazwy
+                functions = [simpleBoxes,f2,f3]    --TODO zmienic nazwy
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
                 divideAndApply slice = joinBackSubAdvBoardSlices slice afterSlices
@@ -123,8 +125,6 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
 
 
 --TODO moze przeniesc do innego pliku ponizsze
-f1 :: AdvBoardSlice -> AdvBoardSlice
-f1 slice = slice
 
 f2 :: AdvBoardSlice -> AdvBoardSlice
 f2 slice = slice
@@ -132,35 +132,3 @@ f2 slice = slice
 f3 :: AdvBoardSlice -> AdvBoardSlice
 f3 slice = slice
 
-f :: [(Color,Bool)] -> [(Color,Bool)] -> HintSlice -> Bool -> Int -> (Bool,[(Color,Bool)],Int)
-f xs result [] _ pos = (True, ((reverse xs)++result), pos)
-f (x:xs) result (h:hs) newHint pos = if xColor == Blank || xColor == hintColor
-                                            then if isOK
-                                                        then (isOK, newList, newPos)
-                                                        else if newHint
-                                                                    then f splitB ((reverse splitA)++(x:result)) (h:hs) newHint (newPos+1)
-                                                                    else (False, [], newPos)
-                                            else if newHint
-                                                        then f xs (x:result) (h:hs) newHint (pos+1)
-                                                        else (False, [], newPos)
-
-        where
-                xColor = fst x
-                (hintCount, hintColor, _) = h
-                hsLength = length hs
-                (_,sndHintColor,_) = head hs
-                (isOK, newList, newPos) = if hintCount == 1 && hsLength > 0 && sndHintColor == hintColor
-                                                  then f (tail xs) ((head xs):(hintColor,False):result) hs True (pos+2)
-                                                  else if hintCount == 1 && hsLength > 0
-                                                          then f xs ((hintColor,False):result) hs True (pos+1)
-                                                          else if hintCount == 1
-                                                                  then (True, (reverse xs)++((hintColor,False):result), pos+1)
-                                                                  else f xs ((hintColor,False):result) ((hintCount-1,hintColor,False):hs) False (pos+1)
-                posDiff = newPos - pos
-                (splitA, splitB) = splitAt posDiff xs
-
-
-
-kiki = [(Blank,False),(NoColor,False),(Blank,False),(Blank,False),(NoColor,False),(NoColor,False),(Blank,False),(NoColor,False),(Blank,False),(Blank,False),(Blank,False),(Blank,False),(Blank,False),(Blank,False)]
-
-hint = [(1,Red,False),(2,Black,False),(1,Red,False),(2,Black,False)]

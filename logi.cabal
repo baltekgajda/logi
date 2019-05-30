@@ -22,6 +22,8 @@ executable logi
     Solver
     Types
     Color
+    Methods
+    Parser
   -- other-extensions:
   build-depends:       
     base >=4.12 && <4.13,
