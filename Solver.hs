@@ -72,7 +72,6 @@ flagFilledFields slice = (slice,False)
 
 --for each boardSlice all done fields are marked using boolean values in new advBoardSlice
 toAdvBoardSlices :: [BoardSlice] -> [AdvBoardSlice]
-toAdvBoardSlices boardSlices = [(getAdvColorArray color, hints) | (color, hints) <- boardSlices]
 toAdvBoardSlices boardSlices = map createAdvBoardSlice boardSlices
         where
                 createAdvBoardSlice :: BoardSlice -> AdvBoardSlice                
