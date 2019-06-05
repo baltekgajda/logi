@@ -1,7 +1,7 @@
 module Methods where
 
 import Types
-
+import Color
 import Data.List.Split
 
 --simpleBoxes performs force/simpleBoxes method, which it tries to fit all the hints in the very beginning
@@ -55,9 +55,6 @@ markFirstsReversed (x:xs) result (h:hs) newHint pos = if xColor == Blank || xCol
 
 
 
---glue performs force/simpleBoxes method, which it tries to fit all the hints in the very beginning
---and very end of a slice then these two are compared and if two fields are the same it means that this color
---must be in this place, the rest of the fields is left untouched
 glue :: AdvBoardSlice -> AdvBoardSlice
 glue (colorArray, hintSlice) = (newColorArray, hintSlice)
         where
@@ -95,7 +92,7 @@ getBoxPosition (x:xs) a = if fst x /= NoColor && fst x /= Blank && snd x == Fals
 
 
 getBorderPosition :: [(Color,Bool)] -> Hint -> Int -> Int -> Int -> Int
-getBorderPosition [x] _ arrayLength _ pos = 0
+getBorderPosition [x] _ arrayLength _ _ = arrayLength
 getBorderPosition (x:xs) (a, b, c) arrayLength boxPosition pos = if (pos+1) >= boxPosition && fst (head xs) /= Blank && fst (head xs) /= fst x
          then if fst (head xs) == b
                   then (arrayLength - pos)
@@ -111,5 +108,40 @@ getNewColorArray (x:xs) (a, b, c) boxPosition borderPosition currentPosition = i
                             then (b, False) : (getNewColorArray xs (a, b, c) boxPosition borderPosition (currentPosition+1))
                             else x : (getNewColorArray xs (a, b, c) boxPosition borderPosition (currentPosition+1))
 
+--------------------------------------------------------------------------------------------------------------------------------------------
 
 
+simpleSpaces :: AdvBoardSlice -> AdvBoardSlice
+simpleSpaces (colorArray, hintSlice) = (newColorArray, hintSlice)
+            where newColorArray | areHintsFilled hintSlice == True || areColorsFilled colorArray hintSlice == True = markEmptyCells colorArray
+                                | otherwise = colorArray
+
+
+areHintsFilled :: [Hint] -> Bool
+areHintsFilled [] = True
+areHintsFilled (x:xs) = isHintFilled x && areHintsFilled xs
+
+isHintFilled :: (Int, Color, Bool) -> Bool
+isHintFilled (_, _, c) = c
+
+markEmptyCells :: [(Color, Bool)] -> [(Color, Bool)]
+markEmptyCells [] = []
+markEmptyCells (x:xs) = (newColor, snd x) : markEmptyCells xs
+         where newColor | fst x == Blank = NoColor
+                        | otherwise = fst x
+
+areColorsFilled :: [(Color, Bool)] -> [Hint] -> Bool
+areColorsFilled a b | sumHint b == sumColoredCells a = True
+                    | otherwise = False
+
+sumHint :: [Hint] -> Int
+sumHint [] = 0
+sumHint (x:xs) = getNumber x + sumHint xs
+
+getNumber :: (Int, Color, Bool) -> Int
+getNumber (a, _, _) = a
+
+sumColoredCells :: [(Color, Bool)] -> Int
+sumColoredCells [] = 0
+sumColoredCells (x:xs) | (fst x) /= Blank && (fst x) /= NoColor = 1 + (sumColoredCells xs)
+                       | otherwise = 0 + sumColoredCells xs

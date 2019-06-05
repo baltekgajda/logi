@@ -6,9 +6,9 @@ import Methods
 import Data.List.Split
 
 --solve is used to solve a puzzle using given hints (vertical & horizontal)
-solve :: Board -> Board
-solve b | isSolved b = b
-        | otherwise  = solve (performSolverLoop b)
+solve :: Board -> Int -> Int -> Board
+solve b x max | isSolved b || x > max = b
+              | otherwise  = solve (performSolverLoop b) (x+1) max
 
 --isSolved checks is puzzle is solved
 isSolved :: Board -> Bool
@@ -21,7 +21,7 @@ isSolved (Board matrix _ _) = isDone (grid (matrix))
 
 --performSolverLoop performs one algorithm loop on rows and on columns and returns new board
 performSolverLoop :: Board -> Board
-performSolverLoop board = rowsBoard
+performSolverLoop board = newBoard
         where
                 rowsBoard = solveOneDirection board divideIntoRows boardFromRowSlices
                 newBoard = solveOneDirection rowsBoard divideIntoColumns boardFromColumnSlices
@@ -36,7 +36,7 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [simpleBoxes,glue,f3]    --TODO zmienic nazwy
+                functions = [simpleBoxes, glue, simpleSpaces]
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
                 divideAndApply slice = joinBackSubAdvBoardSlices slice afterSlices
@@ -72,14 +72,29 @@ flagFilledFields slice = (slice,False)
 
 --for each boardSlice all done fields are marked using boolean values in new advBoardSlice
 toAdvBoardSlices :: [BoardSlice] -> [AdvBoardSlice]
-toAdvBoardSlices boardSlices = [(getAdvColorArray color, hints) | (color, hints) <- boardSlices]
+toAdvBoardSlices boardSlices = map createAdvBoardSlice boardSlices
         where
-                getAdvColorArray :: [Color] -> [(Color, Bool)]
-                getAdvColorArray array = [(c,False) | c <- array]
-                --TODO tu zmienic na policzenie naprawdę czy pole jest Done czy nie,
-                --TODO zrobić to na podstawie hintów, ponieważ oznaczone są te, które zostały zrobione
-                --TODO także wyłącznie na podstawie tego należy znaleźć pola odpowiadające tym spełnionym hintom
-                --TODO i ustalić drugą wartość krotki na true, w każdym innym przypadku ma to być false
+                createAdvBoardSlice :: BoardSlice -> AdvBoardSlice                
+                createAdvBoardSlice (colors, hints) = 
+                        (transformSlice fulfilledHints advColors [], hints)
+                        where   advColors = map (\color -> (color, False)) colors
+                                fulfilledHints = filter (\(_, _, isFullfiled) -> isFullfiled) hints
+                transformSlice :: HintSlice -> [(Color, Bool)] -> [(Color, Bool)] -> [(Color, Bool)]
+                transformSlice [] unprocesseds processeds = processeds ++ unprocesseds
+                transformSlice _ [] processeds = processeds
+                transformSlice (h:hs) (unprocessedElem : unprocesseds) processeds =
+                        if isProperFields h (unprocessedElem : unprocesseds)
+                                then transformSlice hs unps (processeds ++ ps)        
+                                else transformSlice (h:hs) unprocesseds (processeds ++ [unprocessedElem])
+                        where   
+                                (num, _, _) = h
+                                ps = map (\(color, _) -> (color, True)) (take num (unprocessedElem : unprocesseds))
+                                unps = drop (num - 1) unprocesseds
+                                isProperFields :: Hint -> [(Color, Bool)] -> Bool
+                                isProperFields (num, color, _) unprocesseds =
+                                        if num > (length unprocesseds)
+                                                then False
+                                                else (length $ filter (\(fieldColor, _) -> fieldColor == color) $ take num unprocesseds) == num
 
 --toBoardSlices transforms advBoardSlices into BoardSlices
 toBoardSlices :: [AdvBoardSlice] -> [BoardSlice]
@@ -124,8 +139,6 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
                         where (_,_,isDone) = x
 
 
---TODO moze przeniesc do innego pliku ponizsze
 
 f3 :: AdvBoardSlice -> AdvBoardSlice
-f3 slice = slice
-
+f3 a = a

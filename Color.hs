@@ -8,6 +8,7 @@ putCharWithColor :: Char -> System.Console.ANSI.Color -> IO ()
 putCharWithColor x c = do
         setSGR [SetColor Background Vivid c]
         putChar x
+        putChar x
         setSGR [Reset]
 
 printBoard :: Board -> IO()
@@ -24,8 +25,10 @@ printRow (x:xs) = do putCellWithColor x
                      printRow xs
 
 putCellWithColor :: Types.Color -> IO ()
-putCellWithColor col | col == Types.Blank     = putChar ' '
-                     | col == Types.NoColor   = putChar ' '
+putCellWithColor col | col == Types.Blank     = do putChar ' '
+                                                   putChar ' '
+                     | col == Types.NoColor   = do putChar '>'
+                                                   putChar '<'
                      | col == Types.Black     = putCharWithColor ' ' System.Console.ANSI.Black
                      | col == Types.Red       = putCharWithColor ' ' System.Console.ANSI.Red
                      | col == Types.Green     = putCharWithColor ' ' System.Console.ANSI.Green
