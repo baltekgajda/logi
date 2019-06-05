@@ -1,0 +1,31 @@
+12 10
+
+2B
+1B 2B
+1B 1B
+2B
+1B
+3B
+3B
+2B 2B
+2B 1B
+2B 2B 1B
+2B 3B
+2B 2B
+
+2B 1B
+1B 3B
+2B 4B
+3B 4B
+4B
+3B
+3B
+3B
+2B
+2B
+
+Matrix 12 10 [NoColor,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,NoColor,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,NoColor,NoColor,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,NoColor,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,NoColor,NoColor,Red,NoColor,NoColor,NoColor,NoColor,Red,Red,NoColor,NoColor,NoColor,Red,Red,NoColor,Red,NoColor,Red,Red,NoColor,NoColor,NoColor,NoColor,Red,Red,Red,Red,Red,NoColor,NoColor,NoColor,NoColor,NoColor,Red,Red,NoColor]
+
+hHints = [[],[],[],[],[],[],[],[],[],[],[],[]]
+vHints = [[(2, Black, False)],[(1, Black, False), (2,Black,False)],[(1,Black,False),(1,Black,False)],[],[],[],[],[],[],[]]
+board = Board matrix vHints hHints
