@@ -1,5 +1,7 @@
-module Solver where
+﻿module Solver where
+
 import Types
+import Methods
 
 import Data.List.Split
 
@@ -34,7 +36,7 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [f1,f2,f3]    --TODO zmienic nazwy
+                functions = [simpleBoxes,glue,f3]    --TODO zmienic nazwy
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
                 divideAndApply slice = joinBackSubAdvBoardSlices slice afterSlices
@@ -139,13 +141,7 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
 
 
 --TODO moze przeniesc do innego pliku ponizsze
-f1 :: AdvBoardSlice -> AdvBoardSlice
-f1 slice = slice
-
-f2 :: AdvBoardSlice -> AdvBoardSlice
-f2 slice = slice
 
 f3 :: AdvBoardSlice -> AdvBoardSlice
 f3 slice = slice
-
 
