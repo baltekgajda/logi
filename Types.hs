@@ -84,3 +84,30 @@ switchBetweenRowsAndColumns (r:rs) = ownZip r (switchBetweenRowsAndColumns rs)
                 ownZip :: [Color] -> [[Color]] -> [[Color]]
                 ownZip (a:as) (b:bs) = (a : b) : (ownZip as bs)
                 ownZip a []          = map (\x -> [x]) a
+
+
+data Tree a = Empty | Node a (Tree a) (Tree a)
+
+isHeap :: Tree Int -> Bool
+isHeap Empty = True
+isHeap (Node v left right) | isHeap left && isHeap right = isLeftOK && isRightOK
+                           | otherwise = False
+        where
+                isLeftOK = if isEmpty left then True
+                           else (getValue left) <= v
+                isRightOK = if isEmpty right then True
+                                           else (getValue right) <= v
+
+
+                isEmpty Empty = True
+                isEmpty _ = False
+
+                getValue (Node a _ _) = a
+
+t :: Tree Int
+t = Node 5 (Node 3 Empty Empty) (Node 0 Empty Empty)
+
+a = do
+        x <- getChar
+        y <- getChar
+        return y

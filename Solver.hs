@@ -58,43 +58,13 @@ applyFunctions (f:fx) boardSlice = if toDivide then joinBackSubAdvBoardSlices af
                 dividedSlices = divideIntoSubAdvBoardSlices flaggedSlice
                 slicesToJoin = [applyFunctions (f:fx) s | s <- dividedSlices]
 
---checks if any new hints were fulfilled, if so flags appropriate fields and hints
---and returns new slice and true value
-flagFilledFields :: AdvBoardSlice -> (AdvBoardSlice, Bool)
-flagFilledFields slice = (slice,False)
---TODO w tej funkcji dana jest AdvBoardSlice, ale taka że nie ma w niej żadnych pól
---TODO które są oznaczone jako zrobione ([(_,True),...],_) tak samo jak hinty, które są (_,_,True)
---TODO Celem tej funkcji jest sprawdzenie czy jakiś hint został spełniony i oznaczenie odpowiednich pól jako (_,True)
---TODO oraz odpowiednich hintów. Jeśli rzeczywiście jakiś hint został zrobiony i oznaczone zostało to zwracany
---TODO jest nowy AdvBoardSlice i True, jeśli nie znalezniono żadnych spełnionych hintów to zwracany jest wejściowy i False
---TODO dodatkowo jesli wiadomo ze jest np. 1 2 tego samego koloru i dwa jest na planszy to dodać pola x przed ....x22x otaczające
---TODO zrobiony hint, NIE dotyczy jeśli obok jest inny kolor bo mogą być obok siebie
-
 --for each boardSlice all done fields are marked using boolean values in new advBoardSlice
 toAdvBoardSlices :: [BoardSlice] -> [AdvBoardSlice]
-toAdvBoardSlices boardSlices = map createAdvBoardSlice boardSlices
+toAdvBoardSlices boardSlices = newAdvBoardSlices
         where
-                createAdvBoardSlice :: BoardSlice -> AdvBoardSlice                
-                createAdvBoardSlice (colors, hints) = 
-                        (transformSlice fulfilledHints advColors [], hints)
-                        where   advColors = map (\color -> (color, False)) colors
-                                fulfilledHints = filter (\(_, _, isFullfiled) -> isFullfiled) hints
-                transformSlice :: HintSlice -> [(Color, Bool)] -> [(Color, Bool)] -> [(Color, Bool)]
-                transformSlice [] unprocesseds processeds = processeds ++ unprocesseds
-                transformSlice _ [] processeds = processeds
-                transformSlice (h:hs) (unprocessedElem : unprocesseds) processeds =
-                        if isProperFields h (unprocessedElem : unprocesseds)
-                                then transformSlice hs unps (processeds ++ ps)        
-                                else transformSlice (h:hs) unprocesseds (processeds ++ [unprocessedElem])
-                        where   
-                                (num, _, _) = h
-                                ps = map (\(color, _) -> (color, True)) (take num (unprocessedElem : unprocesseds))
-                                unps = drop (num - 1) unprocesseds
-                                isProperFields :: Hint -> [(Color, Bool)] -> Bool
-                                isProperFields (num, color, _) unprocesseds =
-                                        if num > (length unprocesseds)
-                                                then False
-                                                else (length $ filter (\(fieldColor, _) -> fieldColor == color) $ take num unprocesseds) == num
+                getAdvColorArray array = [(c,False) | c <- array]
+                advBoardSlices = [(getAdvColorArray color, hints) | (color, hints) <- boardSlices]
+                newAdvBoardSlices = [(\(x,y) -> if y then x else abs) (flagFilledFields abs) | abs <- advBoardSlices]
 
 --toBoardSlices transforms advBoardSlices into BoardSlices
 toBoardSlices :: [AdvBoardSlice] -> [BoardSlice]
@@ -137,9 +107,6 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
                 joinHints (x:xs) (y:ys) newArray = if isDone then joinHints xs (y:ys) (x:newArray)
                                                    else joinHints xs ys (y:newArray)
                         where (_,_,isDone) = x
-
-
---TODO moze przeniesc do innego pliku ponizsze
 
 f3 :: AdvBoardSlice -> AdvBoardSlice
 f3 slice = slice
