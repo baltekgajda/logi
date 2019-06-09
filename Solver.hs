@@ -21,7 +21,7 @@ isSolved (Board matrix _ _) = isDone (grid (matrix))
 
 --performSolverLoop performs one algorithm loop on rows and on columns and returns new board
 performSolverLoop :: Board -> Board
-performSolverLoop board = rowsBoard
+performSolverLoop board = newBoard 
         where
                 rowsBoard = solveOneDirection board divideIntoRows boardFromRowSlices
                 newBoard = solveOneDirection rowsBoard divideIntoColumns boardFromColumnSlices
@@ -36,7 +36,7 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [simpleBoxes, glue, simpleSpaces]
+                functions = [simpleBoxes, f3, f3]
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
                 divideAndApply slice = joinBackSubAdvBoardSlices slice afterSlices
