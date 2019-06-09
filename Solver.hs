@@ -21,7 +21,7 @@ isSolved (Board matrix _ _) = isDone (grid (matrix))
 
 --performSolverLoop performs one algorithm loop on rows and on columns and returns new board
 performSolverLoop :: Board -> Board
-performSolverLoop board = newBoard
+performSolverLoop board = rowsBoard
         where
                 rowsBoard = solveOneDirection board divideIntoRows boardFromRowSlices
                 newBoard = solveOneDirection rowsBoard divideIntoColumns boardFromColumnSlices
