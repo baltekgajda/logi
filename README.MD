@@ -2,8 +2,15 @@
 [Nonograms](https://en.wikipedia.org/wiki/Nonogram) solver
 
 ## How to use
+
+### Linux
 ```bash
-cat ./data/dumb.txt | cabal v2-run
+cat ./data/dumb2.txt | cabal v2-run
+```
+
+### Windows
+```bash
+PowerShell -Command "cat ./data/dumb2.txt | cabal v2-run"
 ```
 
 ## Input file format

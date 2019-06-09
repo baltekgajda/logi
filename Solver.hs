@@ -6,9 +6,9 @@ import Methods
 import Data.List.Split
 
 --solve is used to solve a puzzle using given hints (vertical & horizontal)
-solve :: Board -> Board
-solve b | isSolved b = b
-        | otherwise  = solve (performSolverLoop b)
+solve :: Board -> Int -> Int -> Board
+solve b c limit| isSolved b || c>limit = b
+               | otherwise = solve (performSolverLoop b) (c+1) limit
 
 --isSolved checks is puzzle is solved
 isSolved :: Board -> Bool
@@ -111,3 +111,5 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
 f3 :: AdvBoardSlice -> AdvBoardSlice
 f3 slice = slice
 
+
+board = Board {matrix = Matrix {rowsNo = 2, columnsNo = 2, grid = [Blank,Blank,Blank,Blank]}, vHints = [[(2,Black,False),(1,Red,False)],[(1,Red,False),(2,Black,False)]], hHints = [[(3,Black,False),(2,Red,False)],[(4,Black,False),(2,Red,False)]]}

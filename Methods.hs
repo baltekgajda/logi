@@ -22,7 +22,7 @@ simpleBoxes (colorArray, hintSlice) = (newColorArray, hintSlice)
 
 --method used in simpleBoxes, recursively tries to fit hints in the very beginning of the slice,
 --arguments: initial slice we want to fill, result slice (empty at the beginning), hintSlice, boolean value
---distinguishing if we start putting colors of the new hint, position in the initial slice
+--distinguishing if we start putting colors of the new hint, position in the initial slices
 markFirstsReversed :: [(Color,Bool)] -> [(Color,Bool)] -> HintSlice -> Bool -> Int -> (Bool,[(Color,Bool)],Int)
 markFirstsReversed (x:xs) result (h:hs) newHint pos = if xColor == Blank || xColor == hintColor
                                             then if isOK
