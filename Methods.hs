@@ -285,6 +285,134 @@ flagFilledFields slice = if done
                 colorArrayMask = createDoneMask doneHints len (NoColor,True,0) (NoColor,0)
                 newColorArray = applyColorDoneMask colorArray colorArrayMask
 
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+simpleSpaces :: AdvBoardSlice -> AdvBoardSlice
+simpleSpaces (colorArray, hintSlice) = (newColorArray, hintSlice)
+            where newColorArray | areHintsFilled hintSlice == True || areColorsFilled colorArray hintSlice == True = markEmptyCells colorArray
+                                | otherwise = bruteForceSpaces (colorArray, hintSlice)
+
+
+areHintsFilled :: [Hint] -> Bool
+areHintsFilled [] = True
+areHintsFilled (x:xs) = third x && areHintsFilled xs
+
+markEmptyCells :: [(Color, Bool)] -> [(Color, Bool)]
+markEmptyCells [] = []
+markEmptyCells (x:xs) = (newColor, snd x) : markEmptyCells xs
+         where newColor | fst x == Blank = NoColor
+                        | otherwise = fst x
+
+areColorsFilled :: [(Color, Bool)] -> [Hint] -> Bool
+areColorsFilled a b | sumHint b == sumColoredCells a = True
+                    | otherwise = False
+
+sumHint :: [Hint] -> Int
+sumHint [] = 0
+sumHint (x:xs) = first x + sumHint xs
+
+sumColoredCells :: [(Color, Bool)] -> Int
+sumColoredCells [] = 0
+sumColoredCells (x:xs) | (fst x) /= Blank && (fst x) /= NoColor = 1 + (sumColoredCells xs)
+                       | otherwise = 0 + sumColoredCells xs
+
+bruteForceSpaces :: AdvBoardSlice -> [(Color, Bool)]
+bruteForceSpaces (colorArray, hintSlice) = createNewColorArray [getArray x | x <- removeAllDups (getAll (colorArray, hintSlice)), (colorArrayIsGood x 1) && (colorArraysFit (getArray x) colorArray)] colorArray 1
+
+colorArrayIsGood :: [[Color]] -> Int -> Bool
+colorArrayIsGood [x] _ = True
+colorArrayIsGood (x:xs) a = if a `mod` 2 == 1
+      then True && colorArrayIsGood xs (a+1)
+      else if length xs > 1
+           then if head x == head (head (tail xs))
+                   then if length (head xs) > 0
+                           then True
+                           else False
+                   else True
+           else True
+
+colorArraysFit :: [Color] -> [(Color, Bool)] -> Bool
+colorArraysFit [] [] = True
+colorArraysFit (x:xs) (y:ys) = if fst y == Blank
+     then True && colorArraysFit xs ys
+     else if fst y == NoColor
+            then if x == Blank
+                then True && colorArraysFit xs ys
+                else False
+            else if fst y == x
+                then True && colorArraysFit xs ys
+                else False
+
+createNewColorArray :: [[Color]] -> [(Color, Bool)] -> Int -> [(Color, Bool)]
+createNewColorArray _ [] _ = []
+createNewColorArray allPossiblePermutations (y:ys) pos = if fst y == NoColor
+     then [y] ++ createNewColorArray allPossiblePermutations ys (pos+1)
+     else if fst y == Blank
+          then if areColorsTheSame allPossiblePermutations pos == True
+                then if (head allPossiblePermutations)!!(pos-1) == Blank
+                        then [(NoColor, False)] ++ createNewColorArray allPossiblePermutations ys (pos+1)
+                        else [((head allPossiblePermutations)!!(pos-1), False)] ++ createNewColorArray allPossiblePermutations ys (pos+1)
+                else [(Blank, False)] ++ createNewColorArray allPossiblePermutations ys (pos+1)
+          else [y] ++ createNewColorArray allPossiblePermutations ys (pos+1)
+
+getArray :: [[Color]] -> [Color]
+getArray [x] = x
+getArray (x:xs) = x ++ getArray xs
+
+
+areColorsTheSame :: Eq a => [[a]] -> Int -> Bool
+areColorsTheSame [x] _ = True
+areColorsTheSame (x:xs) pos = x!!(pos-1) == (head xs)!!(pos-1) && areColorsTheSame xs pos
+
+getAll :: AdvBoardSlice -> [[[Color]]]
+getAll (colors, slices) = [x | x <- fillSoll [(generateBasicSolution slices)] 1 (length (generateBasicSolution slices)) ((length colors) - (sumHint slices)), howManyColors x == length colors]
+
+generateBasicSolution :: [(Int, Color, Bool)] -> [[Color]]
+generateBasicSolution [] = [[]]
+generateBasicSolution (x:xs) = [[], (replicate (first x) (second x))] ++ generateBasicSolution xs
+
+fillSoll :: [[[Color]]] -> Int -> Int -> Int -> [[[Color]]]
+fillSoll [] _ _ _ = []
+fillSoll [x] position maxPos maxColors | position == maxPos = (generateSoll x position 0 maxColors)
+                                       | otherwise  = newColors ++ fillSoll newColors (position+2) maxPos maxColors
+                              where newColors = generateSoll x position 0 maxColors
+fillSoll (x:xs) position maxPos maxColors = fillSoll [x] position maxPos maxColors ++ fillSoll xs position maxPos maxColors
+
+
+generateSoll :: [[Color]] -> Int -> Int -> Int -> [[[Color]]]
+generateSoll colors position howManyColors maxColors | howManyColors <= maxColors = [replaceAt colors position (replicate howManyColors Blank)] ++ generateSoll colors position (howManyColors+1) maxColors
+                                                     | otherwise = [[[]]]
+
+
+replaceAt :: [a] -> Int -> a -> [a]
+replaceAt colors gdzie co = insertAt (removeAt colors gdzie) co (gdzie-1)
+
+insertAt :: [a] -> a -> Int -> [a]
+insertAt lista znak gdzie = take gdzie lista ++ [znak] ++ drop gdzie lista
+
+removeAt :: [a] -> Int -> [a]
+removeAt [] _ = []
+removeAt (x:xs) n | n == 1 = xs
+                  | otherwise = x : (removeAt xs (n-1))
+
+removeAllDups :: Eq a => [a] -> [a]
+removeAllDups [] = []
+removeAllDups [x] = [x]
+removeAllDups (x:xs) = if not (x `elem` xs) then [x] ++ removeAllDups(xs) else removeAllDups(xs)
+
+howManyColors :: [[Color]] -> Int
+howManyColors [] = 0
+howManyColors (x:xs) = length x + howManyColors xs
+
+first :: Hint -> Int
+first (a, _, _) = a
+
+second :: Hint -> Color
+second (_, b, _) = b
+
+third :: Hint -> Bool
+third (_, _, c) = c
+
 --------------------------------------------------------------------------------------------------------------------------------------------
 --
 ----first argument is return from getColorsPos, second from makeSelectionsDisjointed, third hint iterator
