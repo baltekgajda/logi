@@ -8,6 +8,6 @@ import Types
 main = do
     file <- getContents
     let board = parse file
-    let solution =  Solver.solve board 0 1000
+    let solution =  Solver.solve board 0 1
     Color.printBoard solution
 

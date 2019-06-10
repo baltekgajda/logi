@@ -7,7 +7,7 @@ import Data.List.Split
 
 --solve is used to solve a puzzle using given hints (vertical & horizontal)
 solve :: Board -> Int -> Int -> Board
-solve b c limit| isSolved b || c>limit = b
+solve b c limit| isSolved b || c>=limit = b
                | otherwise = solve (performSolverLoop b) (c+1) limit
 
 --isSolved checks is puzzle is solved
