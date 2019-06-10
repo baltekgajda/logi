@@ -4,11 +4,18 @@ import System.Console.ANSI
 import Types
 
 --putCharWithColor puts Char with Color xd
-putCharWithColor :: Char -> System.Console.ANSI.Color -> IO ()
-putCharWithColor x c = do
+putStringWithColor :: String -> System.Console.ANSI.Color -> IO ()
+putStringWithColor s c = do
         setSGR [SetColor Background Vivid c]
-        putChar x
+        putString s
         setSGR [Reset]
+
+putString :: String -> IO ()
+putString [] = do
+        return ()
+putString (c:cs) = do
+        putChar c
+        putString cs
 
 printBoard :: Board -> IO()
 printBoard board = printBoardSlice (divideIntoRows board)
@@ -24,12 +31,12 @@ printRow (x:xs) = do putCellWithColor x
                      printRow xs
 
 putCellWithColor :: Types.Color -> IO ()
-putCellWithColor col | col == Types.Blank     = putChar ' '
-                     | col == Types.NoColor   = putChar ' '
-                     | col == Types.Black     = putCharWithColor ' ' System.Console.ANSI.Black
-                     | col == Types.Red       = putCharWithColor ' ' System.Console.ANSI.Red
-                     | col == Types.Green     = putCharWithColor ' ' System.Console.ANSI.Green
-                     | col == Types.Yellow    = putCharWithColor ' ' System.Console.ANSI.Yellow
-                     | col == Types.Cyan      = putCharWithColor ' ' System.Console.ANSI.Cyan
-                     | col == Types.Magenta   = putCharWithColor ' ' System.Console.ANSI.Magenta
-                     | col == Types.Blue      = putCharWithColor ' ' System.Console.ANSI.Blue
+putCellWithColor col | col == Types.Blank     = putString "  "
+                     | col == Types.NoColor   = putString "XX"
+                     | col == Types.Black     = putStringWithColor "  " System.Console.ANSI.Black
+                     | col == Types.Red       = putStringWithColor "  " System.Console.ANSI.Red
+                     | col == Types.Green     = putStringWithColor "  " System.Console.ANSI.Green
+                     | col == Types.Yellow    = putStringWithColor "  " System.Console.ANSI.Yellow
+                     | col == Types.Cyan      = putStringWithColor "  " System.Console.ANSI.Cyan
+                     | col == Types.Magenta   = putStringWithColor "  " System.Console.ANSI.Magenta
+                     | col == Types.Blue      = putStringWithColor "  " System.Console.ANSI.Blue
