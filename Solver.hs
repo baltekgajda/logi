@@ -36,7 +36,7 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [simpleBoxes,simpleSpaces,glue]
+                functions = [simpleBoxes,glue]
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
                 divideAndApply slice = joined
