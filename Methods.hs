@@ -11,43 +11,47 @@ simpleBoxes :: AdvBoardSlice -> AdvBoardSlice
 simpleBoxes (colorArray, hintSlice) = (newColorArray, hintSlice)
         where
                 --fromBeginRev is reversed, fromEnd is not because argument array was reversed
-                (_, fromBeginRev, _) = markFirstsReversed colorArray [] hintSlice True 0
-                (_, fromEnd, _) = markFirstsReversed (reverse colorArray) [] (reverse hintSlice) True 0
+                indexedColorArray = [(a,b,-1) | (a,b) <- colorArray]
+                (_, fromBeginRev, _) = markFirstsReversed indexedColorArray [] hintSlice (0-hintCount) True 0
+                (_, fromEnd, _) = markFirstsReversed (reverse indexedColorArray) [] (reverse hintSlice) 1 True 0
+                hintCount = length hintSlice
                 fromBegin = reverse fromBeginRev
-                newColorArray = map (\(a,b) -> decideColor a b) $ zip fromBegin fromEnd
+                zippedBegEnd = zip fromBegin fromEnd
+                newColorArray = map (\(a,b) -> decideColor (fst a) (snd a) b) $ zip zippedBegEnd colorArray
                 --find matching fields/ simple boxes matching
-                decideColor :: (Color,Bool) -> (Color,Bool) -> (Color,Bool)
-                decideColor (c1,b1) (c2,_) | c1 == c2 = (c1, b1)
-                                            | otherwise = (Blank, False)
+                decideColor :: (Color,Bool,Int) -> (Color,Bool,Int) -> (Color,Bool) -> (Color,Bool)
+                decideColor (c1,b1,n1) (c2,_,n2) (c3,b3 ) | c1 == c2 && n1 == (0-n2) = (c1, b1)
+                                                          | otherwise = (c3,b3)
 
 --method used in simpleBoxes, recursively tries to fit hints in the very beginning of the slice,
 --arguments: initial slice we want to fill, result slice (empty at the beginning), hintSlice, boolean value
 --distinguishing if we start putting colors of the new hint, position in the initial slices
-markFirstsReversed :: [(Color,Bool)] -> [(Color,Bool)] -> HintSlice -> Bool -> Int -> (Bool,[(Color,Bool)],Int)
-markFirstsReversed (x:xs) result (h:hs) newHint pos = if xColor == Blank || xColor == hintColor
-                                            then if isOK
-                                                        then (isOK, newList, newPos)
-                                                        else if newHint
-                                                                    then markFirstsReversed splitB ((reverse splitA)++(x:result))
-                                                                            (h:hs) newHint (newPos+1)
-                                                                    else (False, [], newPos)
-                                            else if newHint
-                                                        then markFirstsReversed xs (x:result) (h:hs) newHint (pos+1)
-                                                        else (False, [], pos)
+--also returns to which hint this color belongs (_,_,hintNo)
+markFirstsReversed :: [(Color,Bool,Int)] -> [(Color,Bool,Int)] -> HintSlice -> Int -> Bool -> Int -> (Bool,[(Color,Bool,Int)],Int)
+markFirstsReversed (x:xs) result (h:hs) hintNo newHint pos = if xColor == Blank || xColor == hintColor
+                                                                  then if isOK
+                                                                              then (isOK, newList, newPos)
+                                                                              else if newHint
+                                                                                          then markFirstsReversed splitB ((reverse splitA)++(x:result))
+                                                                                                  (h:hs) hintNo newHint (newPos+1)
+                                                                                          else (False, [], newPos)
+                                                                  else if newHint
+                                                                              then markFirstsReversed xs (x:result) (h:hs) hintNo newHint (pos+1)
+                                                                              else (False, [], pos)
 
         where
-                xColor = fst x
+                (xColor,_,_) = x
                 (hintCount, hintColor, _) = h
                 hsLength = length hs
                 (_,sndHintColor,_) = head hs
                 (isOK, newList, newPos) = if hintCount == 1 && hsLength > 0 && sndHintColor == hintColor
-                                                  then markFirstsReversed (tail xs) ((head xs):(hintColor,False):result) hs True (pos+2)
+                                                  then markFirstsReversed (tail xs) ((head xs):(hintColor,False,hintNo):result) hs (hintNo+1) True (pos+2)
                                                   else if hintCount == 1 && hsLength > 0
-                                                          then markFirstsReversed xs ((hintColor,False):result) hs True (pos+1)
+                                                          then markFirstsReversed xs ((hintColor,False,hintNo):result) hs (hintNo+1) True (pos+1)
                                                           else if hintCount == 1
-                                                                  then (True, ((reverse xs)++((hintColor,False):result)), (pos+1))
-                                                                  else markFirstsReversed xs ((hintColor,False):result)
-                                                                          ((hintCount-1,hintColor,False):hs) False (pos+1)
+                                                                  then (True, ((reverse xs)++((hintColor,False,hintNo):result)), (pos+1))
+                                                                  else markFirstsReversed xs ((hintColor,False,hintNo):result)
+                                                                          ((hintCount-1,hintColor,False):hs) hintNo False (pos+1)
                 posDiff = newPos - pos
                 (splitA, splitB) = splitAt posDiff xs
 
@@ -146,8 +150,8 @@ makeSelectionsDisjointed [] _ = []
 makeSelectionsDisjointed (x:xs) wholeList= (findOverlap x wholeList):(makeSelectionsDisjointed xs wholeList)
         where
                 findOverlap :: (Color,(Int,Int)) -> [(Color,(Int,Int))] -> (Color,(Int,Int))
-                findOverlap hint [] = hint
-                findOverlap (color1,(beg1,end1)) ((color2,(beg2,end2)):ys) = if color1 /= color2 || beg1 == beg2 || end1 == end2
+                findOverlap pos [] = pos
+                findOverlap (color1,(beg1,end1)) ((color2,(beg2,end2)):ys) = if color1 /= color2 || end1 == end2
                                                                                     then findOverlap (color1,(beg1,end1)) ys
                                                                              else findOverlap (color1,(newBeg,newEnd)) ys
                         where
@@ -178,11 +182,11 @@ getColorsPos ((color,_):xs) pos (lastColor, begin) = if color == Blank || color 
 --and color positions in ColorArray (return of getColorsPos),
 findDoneHints :: HintSlice -> [(Color,(Int,Int))] -> [(Color,(Int,Int))] -> [(Hint,Int)]
 findDoneHints [] [] _ = []
-findDoneHints (x:xs) (y:ys) list = (findDoneHint x y list):(findDoneHints xs ys list)  --TODO change first elem to return list to not to check every elem
+findDoneHints (x:xs) (y:ys) list = (findDoneHint x y list):(findDoneHints xs ys list)
         where
                 findDoneHint :: Hint -> (Color,(Int,Int)) -> [(Color,(Int,Int))] -> (Hint,Int)
                 findDoneHint hint _ [] = (hint,-1)
-                findDoneHint hint hintSel (l:ls) = if selectionSize < hintCount
+                findDoneHint hint hintSel (l:ls) = if selectionSize < hintCount || hEnd < hBegin
                                                           then (hint,-1)
                                                    else if hintColor == foundColor && fBegin >= hBegin && fEnd <= hEnd && (fBegin+hintCount-1) == fEnd
                                                                 then ((hintCount,hintColor,True),fBegin)
@@ -233,7 +237,7 @@ createDoneMask (h:hs) len lastHint lastDoneHint = if isHintDone
 --from the first argument, from mask otherwise
 applyColorDoneMask :: [(Color,Bool)] -> [(Color,Bool)] -> [(Color,Bool)]
 applyColorDoneMask [] [] = []
-applyColorDoneMask (orig:xs) (mask:ms) = if (fst mask) == Blank then orig:(applyColorDoneMask xs ms)
+applyColorDoneMask (orig:xs) (mask:ms) = if (fst orig == Black && fst orig == Blank) || (length xs<0) || (length ms<0) ||(fst mask) == Blank then orig:(applyColorDoneMask xs ms)
                                                 else mask:(applyColorDoneMask xs ms)
 
 --argument is doneHints (returned from findDoneHints), returns HintSlice and True if some hints were done
@@ -265,10 +269,11 @@ flagFilledFields slice = if done
                 (done,doneSlice) = checkIfAllDone colorArray
                 allDoneHints = [(hintCount,hintColor,True) | (hintCount,hintColor,_) <- hints]
 
-                onlyNoColorBlankArray = [(\(x,y) -> if x == NoColor then (x,y) else (Blank,False)) c| c <- colorArray]
-                (_, fromBeginRev, _) = markFirstsReversed onlyNoColorBlankArray [] hints True 0
-                (_, lasts, _) = markFirstsReversed (reverse onlyNoColorBlankArray) [] (reverse hints) True 0
-                firsts = reverse fromBeginRev
+                onlyNoColorBlankArray = [(\(x,y) -> if x == NoColor then (x,y,-1) else (Blank,False,-1)) c| c <- colorArray]
+                (_, fromBeginRev, _) = markFirstsReversed onlyNoColorBlankArray [] hints 0 True 0
+                (_, fromLasts, _) = markFirstsReversed (reverse onlyNoColorBlankArray) [] (reverse hints) 0 True 0
+                firsts = [(a,b) | (a,b,c) <- (reverse fromBeginRev)]
+                lasts = [(a,b) | (a,b,c) <- fromLasts]
 
                 firstsPos = getFirstsPos firsts 0 Blank
                 lastsPos = getLastsPos lasts 0 Blank
@@ -280,3 +285,55 @@ flagFilledFields slice = if done
                 colorArrayMask = createDoneMask doneHints len (NoColor,True,0) (NoColor,0)
                 newColorArray = applyColorDoneMask colorArray colorArrayMask
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+--
+----first argument is return from getColorsPos, second from makeSelectionsDisjointed, third hint iterator
+----content of first array is grouped by selection they belong to, if it doesn't fit to any, its discarded
+--groupColorsToHints :: [(Color,(Int,Int))] -> [(Color,(Int,Int))] -> Int -> [[(Color,(Int,Int))]]
+--groupColorsToHints positions selections pos = [findToSelect positions s | s <- selections]
+--        where
+--                findToSelect :: [(Color,(Int,Int))] -> (Color,(Int,Int)) -> [(Color,(Int,Int))]
+--                findToSelect [] _ = []
+--                findToSelect (y:ys) sel = if posBeg > selEnd
+--                                                  then []
+--                                          else if posColor == selColor && intersect
+--                                                      then y:(findToSelect ys sel)
+--                                               else findToSelect ys sel
+--                        where
+--                                (posColor, (posBeg,posEnd)) = y
+--                                (selColor, (selBeg,selEnd)) = sel
+--                                intersect = (posEnd <= selEnd && posEnd >= selBeg)
+--                                                || (posEnd <= selEnd && posBeg >= selBeg)
+--                                                        || (posBeg >= selBeg && posBeg <= selEnd)
+--
+----concatenate groups that were created with groupColorsToHints, because for every hint there can be more
+----that one group that belongs to it, so they should be put together so for each hint there is max one group
+--concatGroupedColors :: [[(Color,(Int,Int))]] -> [(Color,(Int,Int))]
+--concatGroupedColors groups = [concatGroup g | g <- groups ,(\x -> length x /= 0) g]
+--        where
+--                concatGroup :: [(Color,(Int,Int))] -> (Color,(Int,Int))
+--                concatGroup [a] = a
+--                concatGroup (a:bs) = (aColor,(aBeg,bEnd))
+--                        where
+--                                (aColor,(aBeg,_)) = a
+--                                (_,(_,bEnd)) = concatGroup bs
+--
+--
+--
+--f :: AdvBoardSlice -> Int
+--f (colorArray,hints) = 0 --TODO
+--        where
+--                onlyNoColorBlankArray = [(\(x,y) -> if x == NoColor then (x,y) else (Blank,False)) c| c <- colorArray]
+--                (_, fromBeginRev, _) = markFirstsReversed onlyNoColorBlankArray [] hints True 0
+--                (_, lasts, _) = markFirstsReversed (reverse onlyNoColorBlankArray) [] (reverse hints) True 0
+--                firsts = reverse fromBeginRev
+--
+--                firstsPos = getFirstsPos firsts 0 Blank
+--                lastsPos = getLastsPos lasts 0 Blank
+--                firstsLastsPos = getHintsSections firstsPos lastsPos
+--                selDisjointed = makeSelectionsDisjointed firstsLastsPos firstsLastsPos
+--                colorsPos = getColorsPos colorArray 0 (Blank,0)
+--                grouped = concatGroupedColors $ groupColorsToHints colorsPos selDisjointed
+--
+--
+--

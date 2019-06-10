@@ -21,7 +21,7 @@ isSolved (Board matrix _ _) = isDone (grid (matrix))
 
 --performSolverLoop performs one algorithm loop on rows and on columns and returns new board
 performSolverLoop :: Board -> Board
-performSolverLoop board = rowsBoard
+performSolverLoop board = newBoard
         where
                 rowsBoard = solveOneDirection board divideIntoRows boardFromRowSlices
                 newBoard = solveOneDirection rowsBoard divideIntoColumns boardFromColumnSlices
@@ -36,13 +36,16 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
                 advBoardSlices = toAdvBoardSlices boardSlices
                 functions :: [(AdvBoardSlice -> AdvBoardSlice)]
                 --functions to add to the algorithm
-                functions = [simpleBoxes,glue,f3]    --TODO zmienic nazwy
+                functions = [simpleBoxes,glue]
                 newAdvBoardSlices = [divideAndApply slice | slice <- advBoardSlices]
                 divideAndApply :: AdvBoardSlice -> AdvBoardSlice
-                divideAndApply slice = joinBackSubAdvBoardSlices slice afterSlices
+                divideAndApply slice = joined
                         where
                                 subdivided = divideIntoSubAdvBoardSlices slice
                                 afterSlices = [applyFunctions functions s | s <- subdivided]
+                                joined = joinBackSubAdvBoardSlices slice afterSlices
+                                countGrey [] = 0
+                                countGrey (x:xs) = if fst x == Blank then 1+countGrey xs else countGrey xs
 
                 newBoardSlices = toBoardSlices newAdvBoardSlices
                 newBoard = boardFromSlicesFun board newBoardSlices
@@ -50,8 +53,8 @@ solveOneDirection board toSlicesFun boardFromSlicesFun = newBoard
 --applyFunctions applies given functions to array of rows or columns
 applyFunctions :: [(AdvBoardSlice -> AdvBoardSlice)] -> AdvBoardSlice -> AdvBoardSlice
 applyFunctions [] boardSlice = boardSlice
-applyFunctions (f:fx) boardSlice = if toDivide then joinBackSubAdvBoardSlices afterApplied slicesToJoin
-                         else applyFunctions fx afterApplied
+applyFunctions (f:fx) boardSlice = if toDivide then joinBackSubAdvBoardSlices flaggedSlice slicesToJoin
+                                   else applyFunctions fx afterApplied
         where
                 afterApplied = f boardSlice
                 (flaggedSlice, toDivide) = flagFilledFields afterApplied
@@ -96,7 +99,8 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
                 newHints = reverse (joinHints oldHints zippedHints [])
 
                 joinColorArrays [] [] newArray = newArray
-                joinColorArrays (x:xs) [] newArray = joinColorArrays xs [] (x:newArray)
+                joinColorArrays (x:xs) [] newArray = if snd x then joinColorArrays xs [] (x:newArray)
+                                                      else joinColorArrays xs [] newArray
                 joinColorArrays [] (y:ys) newArray = joinColorArrays [] ys (y:newArray)
                 joinColorArrays (x:xs) (y:ys) newArray = if snd x then joinColorArrays xs (y:ys) (x:newArray)
                                                          else joinColorArrays xs ys (y:newArray)
@@ -108,8 +112,3 @@ joinBackSubAdvBoardSlices oldSlice subSlices = (newColorArray, newHints)
                                                    else joinHints xs ys (y:newArray)
                         where (_,_,isDone) = x
 
-f3 :: AdvBoardSlice -> AdvBoardSlice
-f3 slice = slice
-
-
-board = Board {matrix = Matrix {rowsNo = 2, columnsNo = 2, grid = [Blank,Blank,Blank,Blank]}, vHints = [[(2,Black,False),(1,Red,False)],[(1,Red,False),(2,Black,False)]], hHints = [[(3,Black,False),(2,Red,False)],[(4,Black,False),(2,Red,False)]]}
